@@ -110,7 +110,7 @@ def extract(
     for i, img_b64 in enumerate(pages, start=1):
         content.append(f"[Page {i}]")
         content.append(
-            {"mime_type": "image/png", "data": base64.b64decode(img_b64)}
+            {"mime_type": "image/jpeg", "data": base64.b64decode(img_b64)}
         )
     content.append(f"\nExtraction request: {query}")
 
@@ -119,7 +119,7 @@ def extract(
         stream=True,
         generation_config=genai.GenerationConfig(
             temperature=0.1,
-            max_output_tokens=4096,
+            max_output_tokens=2048,
         ),
         safety_settings={
             "HARM_CATEGORY_HARASSMENT": "BLOCK_NONE",

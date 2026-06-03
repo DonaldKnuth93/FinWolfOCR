@@ -11,18 +11,19 @@ from typing import List
 import fitz  # PyMuPDF
 from PIL import Image
 
-MAX_DIMENSION = 2048   # Max width or height — fits Claude's optimal vision range
-RENDER_DPI    = 180    # Balance of clarity vs token cost (72 DPI = screen, 300 = print)
+MAX_DIMENSION = 1400   # Sufficient for OCR — smaller = faster API calls
+RENDER_DPI    = 120    # 120 DPI is plenty for text extraction (was 180)
+JPEG_QUALITY  = 88     # JPEG is 4-6x smaller than PNG for scanned docs
 
 
 def _pil_to_b64(img: Image.Image) -> str:
-    """Resize if oversized, then return base64-encoded PNG string."""
+    """Resize if oversized, encode as JPEG — fast and small."""
     if img.mode not in ("RGB", "L"):
         img = img.convert("RGB")
     if img.width > MAX_DIMENSION or img.height > MAX_DIMENSION:
         img.thumbnail((MAX_DIMENSION, MAX_DIMENSION), Image.LANCZOS)
     buf = io.BytesIO()
-    img.save(buf, format="PNG", optimize=True)
+    img.save(buf, format="JPEG", quality=JPEG_QUALITY, optimize=True)
     return base64.standard_b64encode(buf.getvalue()).decode("utf-8")
 
 

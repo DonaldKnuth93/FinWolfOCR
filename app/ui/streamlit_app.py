@@ -520,7 +520,7 @@ def main():
             height=110,
             placeholder="z.B.  Police Nr., Monatsprämie, Franchise, Versicherungsnehmer, Beginn",
         )
-        max_pages = st.slider("MAX. SEITEN PRO DOKUMENT", 5, 40, 20)
+        max_pages = st.slider("MAX. SEITEN PRO DOKUMENT", 5, 40, 10)
 
         run = st.button(
             "Extrahieren →",
@@ -547,19 +547,33 @@ def main():
                 page_count = min(len(pages), max_pages)
                 note = f" (Dokument hat {len(pages)} Seiten, erste {max_pages} werden analysiert)" if len(pages) > max_pages else ""
 
-                with st.spinner(f"Extrahiere {page_count} Seite(n) aus {uf.name}{note}"):
-                    raw = ""
-                    for attempt in range(3):
-                        try:
-                            raw = ""
-                            for chunk in extract(api_key, pages, query, uf.name, max_pages):
-                                raw += chunk
-                            break
-                        except Exception as e:
-                            if "429" in str(e) and attempt < 2:
-                                time.sleep(15 * (attempt + 1))
-                            else:
-                                raise
+                st.markdown(
+                    f'<div class="fw-section-label" style="margin-top:8px;">KI liest {page_count} Seite(n) aus {uf.name}{note}</div>',
+                    unsafe_allow_html=True,
+                )
+                stream_box = st.empty()
+                raw = ""
+                for attempt in range(3):
+                    try:
+                        raw = ""
+                        for chunk in extract(api_key, pages, query, uf.name, max_pages):
+                            raw += chunk
+                            # Show last ~280 chars so the user sees live output
+                            stream_box.markdown(
+                                f'<div style="font-family:monospace;font-size:0.72rem;'
+                                f'color:#7C3AED;background:rgba(124,58,237,0.05);'
+                                f'border-radius:8px;padding:10px 14px;max-height:80px;'
+                                f'overflow:hidden;white-space:pre-wrap;line-height:1.4;">'
+                                f'{raw[-280:].replace("<","&lt;")}</div>',
+                                unsafe_allow_html=True,
+                            )
+                        break
+                    except Exception as e:
+                        if "429" in str(e) and attempt < 2:
+                            time.sleep(15 * (attempt + 1))
+                        else:
+                            raise
+                stream_box.empty()
 
                 result = parse_result(raw)
                 st.session_state.results.append((result, uf.name))
