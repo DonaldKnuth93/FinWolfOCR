@@ -7,7 +7,7 @@ import os
 import sys
 from pathlib import Path
 
-import anthropic
+import google.generativeai as genai
 import streamlit as st
 from dotenv import load_dotenv
 
@@ -451,12 +451,12 @@ TEMPLATES = {
 
 # ── Main app ───────────────────────────────────────────────────────────────────
 @st.cache_resource
-def get_client() -> anthropic.Anthropic:
-    key = os.getenv("ANTHROPIC_API_KEY", "")
+def get_api_key() -> str:
+    key = os.getenv("GEMINI_API_KEY", "")
     if not key:
-        st.error("⚠️  ANTHROPIC_API_KEY not set. Copy .env.example → .env and add your key.")
+        st.error("⚠️  GEMINI_API_KEY not set. Add it to your .env file or Streamlit secrets.")
         st.stop()
-    return anthropic.Anthropic(api_key=key)
+    return key
 
 
 def build_header() -> str:
@@ -473,7 +473,7 @@ def build_header() -> str:
     <div class="fw-title">FinWolf OCR</div>
     <div class="fw-subtitle">Swiss Insurance &amp; Finance · Document Intelligence</div>
   </div>
-  <div class="fw-env-badge">Claude Opus 4.6</div>
+  <div class="fw-env-badge">Gemini 2.0 Flash</div>
 </div>"""
 
 
@@ -481,7 +481,7 @@ def main():
     st.markdown(CSS, unsafe_allow_html=True)
     st.markdown(build_header(), unsafe_allow_html=True)
 
-    client = get_client()
+    api_key = get_api_key()
 
     # ── Session state ─────────────────────────────────────────────────────────
     if "results" not in st.session_state:
@@ -575,7 +575,7 @@ def main():
 
                 with st.spinner(status_text):
                     raw = ""
-                    for chunk in extract(client, pages, query, uf.name, max_pages):
+                    for chunk in extract(api_key, pages, query, uf.name, max_pages):
                         raw += chunk
 
                 result = parse_result(raw)
@@ -626,7 +626,7 @@ def main():
         st.caption(
             f"{len(st.session_state.results)} document(s) · "
             f"{field_count} field(s) extracted · "
-            f"Powered by Claude Opus 4.6"
+            f"Powered by Gemini 2.0 Flash"
         )
 
     elif not uploaded:
