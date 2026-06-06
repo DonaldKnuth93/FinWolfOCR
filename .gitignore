@@ -11,3 +11,11 @@ __pycache__/
 *.egg-info/
 dist/
 build/
+
+# Model checkpoints (not needed for inference)
+models/finwolf-7b-adapter/checkpoint-*/
+
+# Client data — never commit
+data/raw_text/
+data/raw_text.zip
+data/training/
